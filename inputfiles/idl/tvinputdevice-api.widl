@@ -1,0 +1,45 @@
+[NoInterfaceObject]
+interface WebAPIError {
+  readonly attribute unsigned short code;
+
+  readonly attribute DOMString name;
+
+  readonly attribute DOMString message;
+};
+
+[Callback=FunctionOnly, NoInterfaceObject]
+interface ErrorCallback {
+
+  void onerror (WebAPIError error);
+};
+
+[Callback=FunctionOnly, NoInterfaceObject]
+interface SuccessCallback {
+  void onsuccess ();
+};
+
+typedef DOMString InputDeviceKeyName;
+
+[NoInterfaceObject] interface TVInputDeviceManagerObject {
+    readonly attribute TVInputDeviceManager tvinputdevice;
+};
+
+[NoInterfaceObject] interface InputDeviceKey {
+    readonly attribute InputDeviceKeyName name;
+
+    readonly attribute long code;
+};
+
+[NoInterfaceObject] interface TVInputDeviceManager {
+    FrozenArray<InputDeviceKey> getSupportedKeys();
+
+    InputDeviceKey? getKey(InputDeviceKeyName keyName);
+
+    void registerKey(InputDeviceKeyName keyName);
+
+    void unregisterKey(InputDeviceKeyName keyName);
+
+    void registerKeyBatch(FrozenArray<InputDeviceKeyName> keyNames, optional SuccessCallback? successCallback, optional ErrorCallback? errorCallback);
+
+    void unregisterKeyBatch(FrozenArray<InputDeviceKeyName> keyNames, optional SuccessCallback? successCallback, optional ErrorCallback? errorCallback);
+};

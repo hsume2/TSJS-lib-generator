@@ -51,14 +51,14 @@ function emitDom() {
     const outputFolder = path.join(__SOURCE_DIRECTORY__, "../", "generated");
 
     // ${name} will be substituted with the name of an interface
-    const removeVerboseIntroductions: [RegExp, string][] = [
-        [/^(The|A) ${name} interface of (the\s*)*((?:(?!API)[A-Za-z\d\s])+ API)/, 'This $3 interface '],
-        [/^(The|A) ${name} (interface|event|object) (is|represents|describes|defines)?/, ''],
-        [/^An object implementing the ${name} interface (is|represents|describes|defines)/, ''],
-        [/^The ${name} is an interface representing/, ''],
-        [/^This type (is|represents|describes|defines)?/, ''],
-        [/^The (((?:(?!API)[A-Za-z\s])+ API)) ${name} (represents|is|describes|defines)/, 'The $1 ']
-    ];
+    // const removeVerboseIntroductions: [RegExp, string][] = [
+    //     [/^(The|A) ${name} interface of (the\s*)*((?:(?!API)[A-Za-z\d\s])+ API)/, 'This $3 interface '],
+    //     [/^(The|A) ${name} (interface|event|object) (is|represents|describes|defines)?/, ''],
+    //     [/^An object implementing the ${name} interface (is|represents|describes|defines)/, ''],
+    //     [/^The ${name} is an interface representing/, ''],
+    //     [/^This type (is|represents|describes|defines)?/, ''],
+    //     [/^The (((?:(?!API)[A-Za-z\s])+ API)) ${name} (represents|is|describes|defines)/, 'The $1 ']
+    // ];
 
     // Create output folder
     if (!fs.existsSync(outputFolder)) {
@@ -69,11 +69,11 @@ function emitDom() {
     const tsWebIteratorsOutput = path.join(outputFolder, "dom.iterable.generated.d.ts");
     const tsWorkerOutput = path.join(outputFolder, "webworker.generated.d.ts");
 
-    const overriddenItems = require(path.join(inputFolder, "overridingTypes.json"));
-    const addedItems = require(path.join(inputFolder, "addedTypes.json"));
-    const comments = require(path.join(inputFolder, "comments.json"));
-    const documentationFromMDN = apiDescriptionsToIdl(require(path.join(inputFolder, 'mdn', 'apiDescriptions.json')));
-    const removedItems = require(path.join(inputFolder, "removedTypes.json"));
+    const overriddenItems = {}; // require(path.join(inputFolder, "overridingTypes.json"));
+    const addedItems = {}; // require(path.join(inputFolder, "addedTypes.json"));
+    const comments = {}; // require(path.join(inputFolder, "comments.json"));
+    const documentationFromMDN = {}; // apiDescriptionsToIdl(require(path.join(inputFolder, 'mdn', 'apiDescriptions.json')));
+    const removedItems = {}; // require(path.join(inputFolder, "removedTypes.json"));
     const idlSources: any[] = require(path.join(inputFolder, "idlSources.json"));
     const widlStandardTypes = idlSources.map(convertWidl);
 
@@ -99,35 +99,35 @@ function emitDom() {
         }
     }
 
-    function apiDescriptionsToIdl(descriptions: Record<string, string>) {
-        const idl: Browser.WebIdl = {
-            interfaces: {
-                interface: {}
-            }
-        };
+    // function apiDescriptionsToIdl(descriptions: Record<string, string>) {
+    //     const idl: Browser.WebIdl = {
+    //         interfaces: {
+    //             interface: {}
+    //         }
+    //     };
 
-        Object.keys(descriptions).forEach(name => {
-            idl.interfaces!.interface[name] = {
-                comment: transformVerbosity(name, descriptions[name]),
-            } as Browser.Interface;
-        });
+    //     Object.keys(descriptions).forEach(name => {
+    //         idl.interfaces!.interface[name] = {
+    //             comment: transformVerbosity(name, descriptions[name]),
+    //         } as Browser.Interface;
+    //     });
 
-        return idl;
-    }
+    //     return idl;
+    // }
 
-    function transformVerbosity(name: string, description: string): string {
-        for (const regTemplate of removeVerboseIntroductions) {
-            const [{ source: template }, replace] = regTemplate;
+    // function transformVerbosity(name: string, description: string): string {
+    //     for (const regTemplate of removeVerboseIntroductions) {
+    //         const [{ source: template }, replace] = regTemplate;
 
-            const reg = new RegExp(template.replace(/\$\{name\}/g, name) + '\\s*');
-            const product = description.replace(reg, replace);
-            if (product !== description) {
-                return product.charAt(0).toUpperCase() + product.slice(1);
-            }
-        }
+    //         const reg = new RegExp(template.replace(/\$\{name\}/g, name) + '\\s*');
+    //         const product = description.replace(reg, replace);
+    //         if (product !== description) {
+    //             return product.charAt(0).toUpperCase() + product.slice(1);
+    //         }
+    //     }
 
-        return description;
-    }
+    //     return description;
+    // }
 
     /// Load the input file
     let webidl: Browser.WebIdl = require(path.join(inputFolder, "browser.webidl.preprocessed.json"));

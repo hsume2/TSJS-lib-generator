@@ -138,17 +138,17 @@ export function emitWebIdl(webidl: Browser.WebIdl, flavor: Flavor) {
     const eNameToEType = arrayToMap(flatMap(allNonCallbackInterfaces, i => i.events ? i.events.event : []), e => e.name, e => eventTypeMap[e.name] || e.type);
 
     /// Tag name to element name map
-    const tagNameToEleName = getTagNameToElementNameMap();
+    // const tagNameToEleName = getTagNameToElementNameMap();
 
     /// Interface name to all its implemented / inherited interfaces name list map
     /// e.g. If i1 depends on i2, i2 should be in dependencyMap.[i1.Name]
     const iNameToIDependList = arrayToMap(allNonCallbackInterfaces, i => i.name, i => getExtendList(i.name).concat(getImplementList(i.name)));
 
     /// Distinct event type list, used in the "createEvent" function
-    const distinctETypeList = distinct(
-        flatMap(allNonCallbackInterfaces, i => i.events ? i.events.event.map(e => e.type) : [])
-            .concat(allNonCallbackInterfaces.filter(i => i.extends && i.extends.endsWith("Event") && i.name.endsWith("Event")).map(i => i.name))
-    ).sort();
+    // const distinctETypeList = distinct(
+    //     flatMap(allNonCallbackInterfaces, i => i.events ? i.events.event.map(e => e.type) : [])
+    //         .concat(allNonCallbackInterfaces.filter(i => i.extends && i.extends.endsWith("Event") && i.name.endsWith("Event")).map(i => i.name))
+    // ).sort();
 
     /// Interface name to its related eventhandler name list map
     /// Note:
@@ -180,27 +180,27 @@ export function emitWebIdl(webidl: Browser.WebIdl, flavor: Flavor) {
 
     return flavor === Flavor.ES6Iterators ? emitES6DomIterators() : emit();
 
-    function getTagNameToElementNameMap() {
-        const htmlResult: Record<string, string> = {};
-        const htmlDeprecatedResult: Record<string, string> = {};
-        const svgResult: Record<string, string> = {};
-        for (const i of allNonCallbackInterfaces) {
-            if (i.element) {
-                for (const e of i.element) {
-                    if (e.namespace === "SVG") {
-                        svgResult[e.name] = i.name;
-                    }
-                    else if (e.deprecated) {
-                        htmlDeprecatedResult[e.name] = i.name;
-                    }
-                    else {
-                        htmlResult[e.name] = i.name;
-                    }
-                }
-            }
-        }
-        return { htmlResult, htmlDeprecatedResult, svgResult };
-    }
+    // function getTagNameToElementNameMap() {
+    //     const htmlResult: Record<string, string> = {};
+    //     const htmlDeprecatedResult: Record<string, string> = {};
+    //     const svgResult: Record<string, string> = {};
+    //     for (const i of allNonCallbackInterfaces) {
+    //         if (i.element) {
+    //             for (const e of i.element) {
+    //                 if (e.namespace === "SVG") {
+    //                     svgResult[e.name] = i.name;
+    //                 }
+    //                 else if (e.deprecated) {
+    //                     htmlDeprecatedResult[e.name] = i.name;
+    //                 }
+    //                 else {
+    //                     htmlResult[e.name] = i.name;
+    //                 }
+    //             }
+    //         }
+    //     }
+    //     return { htmlResult, htmlDeprecatedResult, svgResult };
+    // }
 
     function getExtendList(iName: string): string[] {
         const i = allInterfacesMap[iName];
@@ -342,11 +342,11 @@ export function emitWebIdl(webidl: Browser.WebIdl, flavor: Flavor) {
         if (baseTypeConversionMap.has(objDomType)) {
             return baseTypeConversionMap.get(objDomType)!;
         }
-        switch (objDomType) {
-            case "DOMHighResTimeStamp": return "number";
-            case "DOMTimeStamp": return "number";
-            case "EventListener": return "EventListenerOrEventListenerObject";
-        }
+        // switch (objDomType) {
+        //     case "DOMHighResTimeStamp": return "number";
+        //     case "DOMTimeStamp": return "number";
+        //     case "EventListener": return "EventListenerOrEventListenerObject";
+        // }
         // Name of an interface / enum / dict. Just return itself
         if (allInterfacesMap[objDomType] ||
             allLegacyWindowAliases.includes(objDomType) ||
@@ -392,17 +392,17 @@ export function emitWebIdl(webidl: Browser.WebIdl, flavor: Flavor) {
         }
     }
 
-    function matchParamMethodSignature(m: Browser.Method, expectedMName: string, expectedMType: string, expectedParamType: string | string[]) {
-        if (!Array.isArray(expectedParamType)) {
-            expectedParamType = [expectedParamType];
-        }
+    // function matchParamMethodSignature(m: Browser.Method, expectedMName: string, expectedMType: string, expectedParamType: string | string[]) {
+    //     if (!Array.isArray(expectedParamType)) {
+    //         expectedParamType = [expectedParamType];
+    //     }
 
-        return expectedMName === m.name &&
-            m.signature && m.signature.length === 1 &&
-            convertDomTypeToTsType(m.signature[0]) === expectedMType &&
-            m.signature[0].param && m.signature[0].param!.length === expectedParamType.length &&
-            expectedParamType.every((pt, idx) => convertDomTypeToTsType(m.signature[0].param![idx]) === pt);
-    }
+    //     return expectedMName === m.name &&
+    //         m.signature && m.signature.length === 1 &&
+    //         convertDomTypeToTsType(m.signature[0]) === expectedMType &&
+    //         m.signature[0].param && m.signature[0].param!.length === expectedParamType.length &&
+    //         expectedParamType.every((pt, idx) => convertDomTypeToTsType(m.signature[0].param![idx]) === pt);
+    // }
 
     function getNameWithTypeParameter(i: Browser.Interface | Browser.Dictionary | Browser.CallbackFunction | Browser.TypeDef, name: string) {
         function typeParameterWithDefault(type: Browser.TypeParameter) {
@@ -418,95 +418,95 @@ export function emitWebIdl(webidl: Browser.WebIdl, flavor: Flavor) {
     }
 
     /// Emit overloads for the createElement method
-    function emitCreateElementOverloads(m: Browser.Method) {
-        if (matchParamMethodSignature(m, "createElement", "Element", ["string", "string | ElementCreationOptions"])) {
-            printer.printLine("createElement<K extends keyof HTMLElementTagNameMap>(tagName: K, options?: ElementCreationOptions): HTMLElementTagNameMap[K];");
-            printer.printLine("/** @deprecated */");
-            printer.printLine("createElement<K extends keyof HTMLElementDeprecatedTagNameMap>(tagName: K, options?: ElementCreationOptions): HTMLElementDeprecatedTagNameMap[K];");
-            printer.printLine("createElement(tagName: string, options?: ElementCreationOptions): HTMLElement;");
-        }
-    }
+    // function emitCreateElementOverloads(m: Browser.Method) {
+    //     if (matchParamMethodSignature(m, "createElement", "Element", ["string", "string | ElementCreationOptions"])) {
+    //         printer.printLine("createElement<K extends keyof HTMLElementTagNameMap>(tagName: K, options?: ElementCreationOptions): HTMLElementTagNameMap[K];");
+    //         printer.printLine("/** @deprecated */");
+    //         printer.printLine("createElement<K extends keyof HTMLElementDeprecatedTagNameMap>(tagName: K, options?: ElementCreationOptions): HTMLElementDeprecatedTagNameMap[K];");
+    //         printer.printLine("createElement(tagName: string, options?: ElementCreationOptions): HTMLElement;");
+    //     }
+    // }
 
-    /// Emit overloads for the getElementsByTagName method
-    function emitGetElementsByTagNameOverloads(m: Browser.Method) {
-        if (matchParamMethodSignature(m, "getElementsByTagName", "HTMLCollection", "string")) {
-            printer.printLine(`getElementsByTagName<K extends keyof HTMLElementTagNameMap>(${m.signature[0].param![0].name}: K): HTMLCollectionOf<HTMLElementTagNameMap[K]>;`);
-            printer.printLine(`getElementsByTagName<K extends keyof SVGElementTagNameMap>(${m.signature[0].param![0].name}: K): HTMLCollectionOf<SVGElementTagNameMap[K]>;`);
-            printer.printLine(`getElementsByTagName(${m.signature[0].param![0].name}: string): HTMLCollectionOf<Element>;`);
-        }
-    }
+    // /// Emit overloads for the getElementsByTagName method
+    // function emitGetElementsByTagNameOverloads(m: Browser.Method) {
+    //     if (matchParamMethodSignature(m, "getElementsByTagName", "HTMLCollection", "string")) {
+    //         printer.printLine(`getElementsByTagName<K extends keyof HTMLElementTagNameMap>(${m.signature[0].param![0].name}: K): HTMLCollectionOf<HTMLElementTagNameMap[K]>;`);
+    //         printer.printLine(`getElementsByTagName<K extends keyof SVGElementTagNameMap>(${m.signature[0].param![0].name}: K): HTMLCollectionOf<SVGElementTagNameMap[K]>;`);
+    //         printer.printLine(`getElementsByTagName(${m.signature[0].param![0].name}: string): HTMLCollectionOf<Element>;`);
+    //     }
+    // }
 
-    /// Emit overloads for the querySelector method
-    function emitQuerySelectorOverloads(m: Browser.Method) {
-        if (matchParamMethodSignature(m, "querySelector", "Element | null", "string")) {
-            printer.printLine("querySelector<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K] | null;");
-            printer.printLine("querySelector<K extends keyof SVGElementTagNameMap>(selectors: K): SVGElementTagNameMap[K] | null;");
-            printer.printLine("querySelector<E extends Element = Element>(selectors: string): E | null;");
-        }
-    }
+    // /// Emit overloads for the querySelector method
+    // function emitQuerySelectorOverloads(m: Browser.Method) {
+    //     if (matchParamMethodSignature(m, "querySelector", "Element | null", "string")) {
+    //         printer.printLine("querySelector<K extends keyof HTMLElementTagNameMap>(selectors: K): HTMLElementTagNameMap[K] | null;");
+    //         printer.printLine("querySelector<K extends keyof SVGElementTagNameMap>(selectors: K): SVGElementTagNameMap[K] | null;");
+    //         printer.printLine("querySelector<E extends Element = Element>(selectors: string): E | null;");
+    //     }
+    // }
 
-    /// Emit overloads for the querySelectorAll method
-    function emitQuerySelectorAllOverloads(m: Browser.Method) {
-        if (matchParamMethodSignature(m, "querySelectorAll", "NodeList", "string")) {
-            printer.printLine("querySelectorAll<K extends keyof HTMLElementTagNameMap>(selectors: K): NodeListOf<HTMLElementTagNameMap[K]>;");
-            printer.printLine("querySelectorAll<K extends keyof SVGElementTagNameMap>(selectors: K): NodeListOf<SVGElementTagNameMap[K]>;");
-            printer.printLine("querySelectorAll<E extends Element = Element>(selectors: string): NodeListOf<E>;");
-        }
-    }
+    // /// Emit overloads for the querySelectorAll method
+    // function emitQuerySelectorAllOverloads(m: Browser.Method) {
+    //     if (matchParamMethodSignature(m, "querySelectorAll", "NodeList", "string")) {
+    //         printer.printLine("querySelectorAll<K extends keyof HTMLElementTagNameMap>(selectors: K): NodeListOf<HTMLElementTagNameMap[K]>;");
+    //         printer.printLine("querySelectorAll<K extends keyof SVGElementTagNameMap>(selectors: K): NodeListOf<SVGElementTagNameMap[K]>;");
+    //         printer.printLine("querySelectorAll<E extends Element = Element>(selectors: string): NodeListOf<E>;");
+    //     }
+    // }
 
-    function emitHTMLElementTagNameMap() {
-        printer.printLine("interface HTMLElementTagNameMap {");
-        printer.increaseIndent();
-        for (const [e, value] of Object.entries(tagNameToEleName.htmlResult).sort()) {
-            printer.printLine(`"${e.toLowerCase()}": ${value};`);
-        }
-        printer.decreaseIndent();
-        printer.printLine("}");
-        printer.printLine("");
-    }
+    // function emitHTMLElementTagNameMap() {
+    //     printer.printLine("interface HTMLElementTagNameMap {");
+    //     printer.increaseIndent();
+    //     for (const [e, value] of Object.entries(tagNameToEleName.htmlResult).sort()) {
+    //         printer.printLine(`"${e.toLowerCase()}": ${value};`);
+    //     }
+    //     printer.decreaseIndent();
+    //     printer.printLine("}");
+    //     printer.printLine("");
+    // }
 
-    function emitHTMLElementDeprecatedTagNameMap() {
-        printer.printLine("interface HTMLElementDeprecatedTagNameMap {");
-        printer.increaseIndent();
-        for (const [e, value] of Object.entries(tagNameToEleName.htmlDeprecatedResult).sort()) {
-            printer.printLine(`"${e.toLowerCase()}": ${value};`);
-        }
-        printer.decreaseIndent();
-        printer.printLine("}");
-        printer.printLine("");
-    }
+    // function emitHTMLElementDeprecatedTagNameMap() {
+    //     printer.printLine("interface HTMLElementDeprecatedTagNameMap {");
+    //     printer.increaseIndent();
+    //     for (const [e, value] of Object.entries(tagNameToEleName.htmlDeprecatedResult).sort()) {
+    //         printer.printLine(`"${e.toLowerCase()}": ${value};`);
+    //     }
+    //     printer.decreaseIndent();
+    //     printer.printLine("}");
+    //     printer.printLine("");
+    // }
 
-    function emitSVGElementTagNameMap() {
-        printer.printLine("interface SVGElementTagNameMap {");
-        printer.increaseIndent();
-        for (const [e, value] of Object.entries(tagNameToEleName.svgResult).sort()) {
-            printer.printLine(`"${e}": ${value};`);
-        }
-        printer.decreaseIndent();
-        printer.printLine("}");
-        printer.printLine("");
-    }
+    // function emitSVGElementTagNameMap() {
+    //     printer.printLine("interface SVGElementTagNameMap {");
+    //     printer.increaseIndent();
+    //     for (const [e, value] of Object.entries(tagNameToEleName.svgResult).sort()) {
+    //         printer.printLine(`"${e}": ${value};`);
+    //     }
+    //     printer.decreaseIndent();
+    //     printer.printLine("}");
+    //     printer.printLine("");
+    // }
 
-    function emitElementTagNameMap() {
-        printer.printLine("/** @deprecated Directly use HTMLElementTagNameMap or SVGElementTagNameMap as appropriate, instead. */");
-        printer.printLine("type ElementTagNameMap = HTMLElementTagNameMap & Pick<SVGElementTagNameMap, Exclude<keyof SVGElementTagNameMap, keyof HTMLElementTagNameMap>>;");
-        printer.printLine("");
-    }
+    // function emitElementTagNameMap() {
+    //     // printer.printLine("/** @deprecated Directly use HTMLElementTagNameMap or SVGElementTagNameMap as appropriate, instead. */");
+    //     // printer.printLine("type ElementTagNameMap = HTMLElementTagNameMap & Pick<SVGElementTagNameMap, Exclude<keyof SVGElementTagNameMap, keyof HTMLElementTagNameMap>>;");
+    //     // printer.printLine("");
+    // }
 
     /// Emit overloads for the createEvent method
-    function emitCreateEventOverloads(m: Browser.Method) {
-        if (matchParamMethodSignature(m, "createEvent", "Event", "string")) {
-            // Emit plurals. For example, "Events", "MutationEvents"
-            const hasPlurals = ["Event", "MutationEvent", "MouseEvent", "SVGZoomEvent", "UIEvent"];
-            for (const x of distinctETypeList) {
-                printer.printLine(`createEvent(eventInterface: "${x}"): ${x};`);
-                if (hasPlurals.includes(x)) {
-                    printer.printLine(`createEvent(eventInterface: "${x}s"): ${x};`);
-                }
-            }
-            printer.printLine("createEvent(eventInterface: string): Event;");
-        }
-    }
+    // function emitCreateEventOverloads(m: Browser.Method) {
+    //     if (matchParamMethodSignature(m, "createEvent", "Event", "string")) {
+    //         // Emit plurals. For example, "Events", "MutationEvents"
+    //         const hasPlurals = ["Event", "MutationEvent", "MouseEvent", "SVGZoomEvent", "UIEvent"];
+    //         for (const x of distinctETypeList) {
+    //             printer.printLine(`createEvent(eventInterface: "${x}"): ${x};`);
+    //             if (hasPlurals.includes(x)) {
+    //                 printer.printLine(`createEvent(eventInterface: "${x}s"): ${x};`);
+    //             }
+    //         }
+    //         printer.printLine("createEvent(eventInterface: string): Event;");
+    //     }
+    // }
 
     /// Generate the parameters string for function signatures
     function paramsToString(ps: Browser.Param[]) {
@@ -526,39 +526,39 @@ export function emitWebIdl(webidl: Browser.WebIdl, flavor: Flavor) {
         return ps.map(paramToString).join(", ");
     }
 
-    function emitCallBackInterface(i: Browser.Interface) {
-        if (i.name === "EventListener") {
-            printer.printLine(`interface ${i.name} {`);
-            printer.increaseIndent();
-            printer.printLine("(evt: Event): void;");
-            printer.decreaseIndent();
-            printer.printLine("}");
-        }
-        else {
-            const methods = mapToArray(i.methods.method);
-            const m = methods[0];
-            const overload = m.signature[0];
-            const paramsString = overload.param ? paramsToString(overload.param) : "";
-            const returnType = overload.type ? convertDomTypeToTsType(overload) : "void";
-            printer.printLine(`type ${i.name} = ((${paramsString}) => ${returnType}) | { ${m.name}(${paramsString}): ${returnType}; };`);
-        }
-        printer.printLine("");
-    }
+    // function emitCallBackInterface(i: Browser.Interface) {
+    //     if (i.name === "EventListener") {
+    //         printer.printLine(`interface ${i.name} {`);
+    //         printer.increaseIndent();
+    //         printer.printLine("(evt: Event): void;");
+    //         printer.decreaseIndent();
+    //         printer.printLine("}");
+    //     }
+    //     else {
+    //         const methods = mapToArray(i.methods.method);
+    //         const m = methods[0];
+    //         const overload = m.signature[0];
+    //         const paramsString = overload.param ? paramsToString(overload.param) : "";
+    //         const returnType = overload.type ? convertDomTypeToTsType(overload) : "void";
+    //         printer.printLine(`type ${i.name} = ((${paramsString}) => ${returnType}) | { ${m.name}(${paramsString}): ${returnType}; };`);
+    //     }
+    //     printer.printLine("");
+    // }
 
-    function emitCallBackFunction(cb: Browser.CallbackFunction) {
-        printer.printLine(`interface ${getNameWithTypeParameter(cb, cb.name)} {`);
-        printer.increaseIndent();
-        emitSignatures(cb, "", "", printer.printLine);
-        printer.decreaseIndent();
-        printer.printLine("}");
-        printer.printLine("");
-    }
+    // function emitCallBackFunction(cb: Browser.CallbackFunction) {
+    //     printer.printLine(`interface ${getNameWithTypeParameter(cb, cb.name)} {`);
+    //     printer.increaseIndent();
+    //     emitSignatures(cb, "", "", printer.printLine);
+    //     printer.decreaseIndent();
+    //     printer.printLine("}");
+    //     printer.printLine("");
+    // }
 
-    function emitCallBackFunctions() {
-        getElements(webidl["callback-functions"], "callback-function")
-            .sort(compareName)
-            .forEach(emitCallBackFunction);
-    }
+    // function emitCallBackFunctions() {
+    //     getElements(webidl["callback-functions"], "callback-function")
+    //         .sort(compareName)
+    //         .forEach(emitCallBackFunction);
+    // }
 
     function emitEnum(e: Browser.Enum) {
         const values = e.value.slice().sort();
@@ -663,13 +663,13 @@ export function emitWebIdl(webidl: Browser.WebIdl, flavor: Flavor) {
 
         emitComments(m, printLine);
 
-        switch (m.name) {
-            case "createElement": return emitCreateElementOverloads(m);
-            case "createEvent": return emitCreateEventOverloads(m);
-            case "getElementsByTagName": return emitGetElementsByTagNameOverloads(m);
-            case "querySelector": return emitQuerySelectorOverloads(m);
-            case "querySelectorAll": return emitQuerySelectorAllOverloads(m);
-        }
+        // switch (m.name) {
+        //     case "createElement": return emitCreateElementOverloads(m);
+        //     case "createEvent": return emitCreateEventOverloads(m);
+        //     case "getElementsByTagName": return emitGetElementsByTagNameOverloads(m);
+        //     case "querySelector": return emitQuerySelectorOverloads(m);
+        //     case "querySelectorAll": return emitQuerySelectorAllOverloads(m);
+        // }
 
         // ignore toString() provided from browser.webidl.preprocessed.json
         // to prevent duplication
@@ -762,37 +762,37 @@ export function emitWebIdl(webidl: Browser.WebIdl, flavor: Flavor) {
         }
     }
 
-    function emitEventHandlers(prefix: string, i: Browser.Interface) {
-        const fPrefix = prefix.startsWith("declare var") ? "declare function " : "";
+    function emitEventHandlers(_prefix: string, _i: Browser.Interface) {
+        // const fPrefix = prefix.startsWith("declare var") ? "declare function " : "";
 
-        for (const addOrRemove of ["add", "remove"]) {
-            const optionsType = addOrRemove === "add" ? "AddEventListenerOptions" : "EventListenerOptions";
-            if (tryEmitTypedEventHandlerForInterface(addOrRemove, optionsType)) {
-                // only emit the string event handler if we just emited a typed handler
-                printer.printLine(`${fPrefix}${addOrRemove}EventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | ${optionsType}): void;`);
-            }
-        }
+        // for (const addOrRemove of ["add", "remove"]) {
+        //     const optionsType = addOrRemove === "add" ? "AddEventListenerOptions" : "EventListenerOptions";
+        //     if (tryEmitTypedEventHandlerForInterface(addOrRemove, optionsType)) {
+        //         // only emit the string event handler if we just emited a typed handler
+        //         printer.printLine(`${fPrefix}${addOrRemove}EventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | ${optionsType}): void;`);
+        //     }
+        // }
 
         return;
 
-        function emitTypedEventHandler(prefix: string, addOrRemove: string, iParent: Browser.Interface, optionsType: string) {
-            printer.printLine(`${prefix}${addOrRemove}EventListener<K extends keyof ${iParent.name}EventMap>(type: K, listener: (this: ${nameWithForwardedTypes(i)}, ev: ${iParent.name}EventMap[K]) => any, options?: boolean | ${optionsType}): void;`);
-        }
+        // function emitTypedEventHandler(prefix: string, addOrRemove: string, iParent: Browser.Interface, optionsType: string) {
+        //     printer.printLine(`${prefix}${addOrRemove}EventListener<K extends keyof ${iParent.name}EventMap>(type: K, listener: (this: ${nameWithForwardedTypes(i)}, ev: ${iParent.name}EventMap[K]) => any, options?: boolean | ${optionsType}): void;`);
+        // }
 
-        function tryEmitTypedEventHandlerForInterface(addOrRemove: string, optionsType: string) {
-            const hasEventListener = iNameToEhList[i.name] && iNameToEhList[i.name].length;
-            const ehParentCount = iNameToEhParents[i.name] && iNameToEhParents[i.name].length;
+        // function tryEmitTypedEventHandlerForInterface(addOrRemove: string, optionsType: string) {
+        //     const hasEventListener = iNameToEhList[i.name] && iNameToEhList[i.name].length;
+        //     const ehParentCount = iNameToEhParents[i.name] && iNameToEhParents[i.name].length;
 
-            if (hasEventListener || ehParentCount > 1) {
-                emitTypedEventHandler(fPrefix, addOrRemove, i, optionsType);
-                return true;
-            }
-            else if (ehParentCount === 1) {
-                emitTypedEventHandler(fPrefix, addOrRemove, iNameToEhParents[i.name][0], optionsType);
-                return true;
-            }
-            return false;
-        }
+        //     if (hasEventListener || ehParentCount > 1) {
+        //         emitTypedEventHandler(fPrefix, addOrRemove, i, optionsType);
+        //         return true;
+        //     }
+        //     else if (ehParentCount === 1) {
+        //         emitTypedEventHandler(fPrefix, addOrRemove, iNameToEhParents[i.name][0], optionsType);
+        //         return true;
+        //     }
+        //     return false;
+        // }
     }
 
     function emitConstructorSignature(i: Browser.Interface) {
@@ -1146,23 +1146,23 @@ export function emitWebIdl(webidl: Browser.WebIdl, flavor: Flavor) {
         printer.printLine("");
 
         emitDictionaries();
-        getElements(webidl["callback-interfaces"], "interface")
-            .sort(compareName)
-            .forEach(i => emitCallBackInterface(i));
+        // getElements(webidl["callback-interfaces"], "interface")
+        //     .sort(compareName)
+        //     .forEach(i => emitCallBackInterface(i));
         emitNonCallbackInterfaces();
 
-        printer.printLine("declare type EventListenerOrEventListenerObject = EventListener | EventListenerObject;");
-        printer.printLine("");
+        // printer.printLine("declare type EventListenerOrEventListenerObject = EventListener | EventListenerObject;");
+        // printer.printLine("");
 
         collectLegacyNamespaceTypes(webidl).forEach(emitNamespace);
 
-        emitCallBackFunctions();
+        // emitCallBackFunctions();
 
         if (flavor !== Flavor.Worker) {
-            emitHTMLElementTagNameMap();
-            emitHTMLElementDeprecatedTagNameMap();
-            emitSVGElementTagNameMap();
-            emitElementTagNameMap();
+            // emitHTMLElementTagNameMap();
+            // emitHTMLElementDeprecatedTagNameMap();
+            // emitSVGElementTagNameMap();
+            // emitElementTagNameMap();
             emitNamedConstructors();
         }
 

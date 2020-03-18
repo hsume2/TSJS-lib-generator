@@ -1,0 +1,176 @@
+[NoInterfaceObject]interface WebAPIError {
+  readonly attribute unsigned long code;
+  readonly attribute DOMString name;
+  readonly attribute DOMString message;
+};
+
+[Callback = FunctionOnly, NoInterfaceObject]interface SuccessCallback {
+  void onsuccess();
+};
+
+[Callback = FunctionOnly, NoInterfaceObject]interface ErrorCallback {
+  void onerror(WebAPIError error);
+};
+
+
+enum AVPlayPlayerState {
+  "NONE",
+  "IDLE",
+  "READY",
+  "PLAYING",
+  "PAUSED"
+};
+
+enum AVPlayDisplayMode {
+  "PLAYER_DISPLAY_MODE_LETTER_BOX",
+  "PLAYER_DISPLAY_MODE_FULL_SCREEN",
+  "PLAYER_DISPLAY_MODE_AUTO_ASPECT_RATIO"
+};
+
+enum AVPlayBufferOption {
+  "PLAYER_BUFFER_FOR_PLAY",
+  "PLAYER_BUFFER_FOR_RESUME"
+};
+
+enum AVPlayBufferSizeUnit {
+  "PLAYER_BUFFER_SIZE_IN_BYTE",
+  "PLAYER_BUFFER_SIZE_IN_SECOND"
+};
+
+enum AVPlayStreamingPropertyType {
+  "COOKIE",
+  "USER_AGENT",
+  "PREBUFFER_MODE",
+  "ADAPTIVE_INFO",
+  "SET_MODE_4K",
+  "PROPERTY_HD_AUDIO",
+  "LISTEN_SPARSE_TRACK",
+  "IS_LIVE",
+  "AVAILABLE_BITRATE",
+  "GET_LIVE_DURATION",
+  "CURRENT_BANDWIDTH",
+  "WIDEVINE"
+};
+
+enum AVPlayDrmType {
+  "PLAYREADY",
+  "VERIMATRIX",
+  "WIDEVINE_CDM"
+};
+
+enum AVPlayDrmOperation {
+  "SetProperties",
+  "InstallLicense",
+  "ProcessInitiator",
+  "GetUID",
+  "Initialize",
+  "Finalize",
+  "widevine_license_data",
+  "widevine_app_session",
+  "widevine_data_type"
+};
+
+enum AVPlayStreamType {
+  "VIDEO",
+  "AUDIO",
+  "TEXT"
+};
+
+enum AVPlayError{
+  "PLAYER_ERROR_NONE",
+  "PLAYER_ERROR_INVALID_PARAMETER",
+  "PLAYER_ERROR_NO_SUCH_FILE",
+  "PLAYER_ERROR_INVALID_OPERATION",
+  "PLAYER_ERROR_SEEK_FAILED",
+  "PLAYER_ERROR_INVALID_STATE",
+  "PLAYER_ERROR_NOT_SUPPORTED_FILE",
+  "PLAYER_ERROR_INVALID_URI",
+  "PLAYER_ERROR_CONNECTION_FAILED",
+  "PLAYER_ERROR_GENEREIC"
+};
+
+enum AVPlayEvent {
+  "PLAYER_MSG_NONE",
+  "PLAYER_MSG_RESOLUTION_CHANGED",
+  "PLAYER_MSG_BITRATE_CHANGE",
+  "PLAYER_MSG_FRAGMENT_INFO",
+  "PLAYER_SPARSE_TRACK_DETECT",
+  "PLAYER_STREAMING_EVENT",
+  "PLAYER_MSG_HTTP_ERROR_CODE",
+  "PLAYER_MSG_DRM_CHALLENGE_DATA"
+};
+
+dictionary AVPlayStreamInfo {
+  unsigned long index;
+  unsigned long adaption_index;
+  unsigned long alternate_index;
+  AVPlayStreamType type;
+  DOMString extra_info;
+};
+
+dictionary AVPlaySubtitleAttribute {
+  DOMString attr_type;
+long start_pos;
+long stop_pos;
+};
+
+[NoInterfaceObject] interface AVPlayManagerObject {
+  readonly attribute AVPlayManager avplay;
+};
+
+[NoInterfaceObject] interface AVPlayManager {
+  void open(DOMString url);
+  void close();
+  void prepare();
+  void prepareAsync(optional SuccessCallback? successCallback, optional ErrorCallback? errorCallback);
+  void setDisplayRect( unsigned long x, unsigned long y, unsigned long width, unsigned long height );
+  void play();
+  void seekTo(long milliseconds, optional SuccessCallback? successCallback, optional ErrorCallback? errorCallback);
+  void stop();
+  AVPlayPlayerState getState();
+  void pause();
+  void jumpForward(long milliseconds, optional SuccessCallback? successCallback, optional ErrorCallback? errorCallback);
+  void jumpBackward( long milliseconds, optional SuccessCallback? successCallback, optional ErrorCallback? errorCallback );
+  unsigned long getDuration() ;
+  unsigned long getCurrentTime() ;
+  void setTimeoutForBuffering(unsigned long seconds);
+  void setBufferingParam(AVPlayBufferOption option, AVPlayBufferSizeUnit unit, unsigned long amount);
+  void setSpeed(long playbackSpeed);
+  void setListener(AVPlayPlaybackCallback playbackCallback);
+  DOMString setDrm(AVPlayDrmType drmType, AVPlayDrmOperation drmOperation, DOMString jsonParam);
+  DOMString getUID (AVPlayDrmType drmType);
+  void setSoundAnalysisListener (SuccessCallback soundAnalysisCallback);
+  void unsetSoundAnalysisListener();
+  void setSilentSubtitle(boolean onoff);
+  void setExternalSubtitlePath(DOMString filePath);
+  void setSubtitlePosition(long position);
+  void setDisplayMethod(AVPlayDisplayMode displayMode);
+  void setSelectTrack(AVPlayStreamType trackType, long trackIndex);
+  AVPlayStreamInfo getCurrentStreamInfo();
+  FrozenArray<AVPlayStreamInfo> getTotalTrackInfo();
+  void setStreamingProperty(AVPlayStreamingPropertyType propertyType, DOMString propertyParam);
+  DOMString getStreamingProperty(AVPlayStreamingPropertyType propertyType);
+  DOMString getVersion();
+  void suspend() ;
+  void restore(DOMString URL, unsigned long resumeTime, boolean bPrepare);
+  void restoreAsync(DOMString URL, optional long? resumeTime, optional boolean? bPrepare, optional SuccessCallback? successCallback, optional ErrorCallback? errorCallback);
+};
+
+interface drmData {
+  attribute DOMString name;
+  attribute DOMString code;
+  attribute DOMString message;
+  attribute DOMString challenge;
+};
+
+[Callback=FunctionOnly, NoInterfaceObject] interface AVPlayPlaybackCallback{
+  void onbufferingstart();
+  void onbufferingprogress(unsigned long percent);
+  void onbufferingcomplete();
+  void oncurrentplaytime(unsigned long currentTime );
+  void onstreamcompleted();
+  void onevent(AVPlayEvent eventid, DOMString data );
+  void onerror(AVPlayError eventid);
+  void ondrmevent(AVPlayDrmType type, drmData data);
+  void onsubtitlechange(unsigned long duration, DOMString subtitles, unsigned long type, AVPlaySubtitleAttribute attributes);
+};

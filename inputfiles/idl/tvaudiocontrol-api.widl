@@ -1,0 +1,56 @@
+enum AudioOutputMode {
+    "PCM",
+    "DOLBY",
+    "DTS",
+    "AAC"
+};
+
+enum AudioBeepType {
+    "UP",
+    "DOWN",
+    "LEFT",
+    "RIGHT",
+    "PAGE_LEFT",
+    "PAGE_RIGHT",
+    "BACK",
+    "SELECT",
+    "CANCEL",
+    "WARNING",
+    "KEYPAD",
+    "KEYPAD_ENTER",
+    "KEYPAD_DEL",
+    "MOVE",
+    "PREPARING"
+};
+
+[NoInterfaceObject] interface AudioControlManagerObject {
+    readonly attribute AudioControlManager tvaudiocontrol;
+};
+
+[NoInterfaceObject] interface AudioControlManager {
+
+    void setMute(boolean mute);
+
+    boolean isMute();
+
+    void setVolume(unsigned short volume);
+
+    void setVolumeUp();
+
+    void setVolumeDown();
+
+    unsigned short getVolume();
+
+    void setVolumeChangeListener(VolumeChangeCallback callback);
+
+    void unsetVolumeChangeListener();
+
+    AudioOutputMode getOutputMode();
+
+    void playSound(AudioBeepType type);
+
+};
+
+[Callback = FunctionOnly, NoInterfaceObject] interface VolumeChangeCallback {
+    void onchanged(unsigned short volume);
+};
